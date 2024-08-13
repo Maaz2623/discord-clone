@@ -20,6 +20,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "../ui/button";
+import { useModal } from "@/hooks/use-modal-store";
 
 interface ChatItemProps {
   id: string;
@@ -94,7 +95,8 @@ const ChatItem = ({
   const isPDF = fileType === "pdf" && fileUrl;
   const isImage = !isPDF && fileUrl;
   const [isEditing, setIsEditing] = useState(false);
-  const [isDeleted, setIsDeleting] = useState(false);
+
+  const { onOpen } = useModal();
 
   const isLoading = form.formState.isSubmitting;
 
@@ -106,8 +108,8 @@ const ChatItem = ({
       });
 
       await axios.patch(url, values);
-      form.reset()
-      setIsEditing(false)
+      form.reset();
+      setIsEditing(false);
     } catch (error) {
       console.log(error);
     }
@@ -171,7 +173,7 @@ const ChatItem = ({
               )}
             >
               {content}
-              {isUpdated && !isDeleted && (
+              {isUpdated && (
                 <span className="text-[10px] mx-2 text-zinc-500 dark:text-zinc-400">
                   (edited)
                 </span>
@@ -202,7 +204,12 @@ const ChatItem = ({
                     </FormItem>
                   )}
                 />
-                <Button type="submit" disabled={isLoading} size={`sm`} variant={`primary`}>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  size={`sm`}
+                  variant={`primary`}
+                >
                   Save
                 </Button>
               </form>
@@ -227,7 +234,15 @@ const ChatItem = ({
             </ActionTooltip>
           )}
           <ActionTooltip label="Delete">
-            <TrashIcon className="cursor-pointer ml-auto w-4 h-4 text-zinc-500 hover:text-zinc-600 dark:text-zinc-300 transition" />
+            <TrashIcon
+              onClick={() =>
+                onOpen("deleteMessage", {
+                  apiUrl: `${socketUrl}/${id}`,
+                  query: socketQuery,
+                })
+              }
+              className="cursor-pointer ml-auto w-4 h-4 text-zinc-500 hover:text-zinc-600 dark:text-zinc-300 transition"
+            />
           </ActionTooltip>
         </div>
       )}
